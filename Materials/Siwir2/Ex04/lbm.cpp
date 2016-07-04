@@ -24,7 +24,13 @@ class lattice{
 public:
     void set_value(double x_val, double y_val, double func_val);
     void set_omega();
-    void set_c_c_s();
+    void set_relaxation(double nu_l);
+    void display_value(double val);
+    void initial_setup();
+//    void calc_density();
+//    void calc_velocity();
+    void calc_dist_function();
+    void calc_dist_function_equli();
 
 
 public:
@@ -33,9 +39,34 @@ public:
     double density;
     double velocity;
     vector <double> omega;
-    vector <double> c;
-    double c_s;
+    static double const c[9][2];
+    const double c_s = 0.577350269;
 };
+
+void lattice::display_value(double val){
+    cout << "value of : " << val << endl;
+}
+
+void lattice::calc_dist_function(){
+
+}
+
+void lattice::initial_setup(){
+    density = 1.0;
+    x_pos = 0;
+    y_pos = 0;
+
+    func = func_eq(density, x_pos, y_pos);
+}
+
+void lattice::set_relaxation(double nu_l){
+
+    double relax_fac;
+    relax_fac = 1/((3*nu_l)+0.5);
+
+    display_value(relax_fac); //lies between 0 < w < 2
+
+}
 
 void lattice::set_value(double x_val, double y_val, double func_val){
     values v;
@@ -62,9 +93,18 @@ void lattice::omega(){
     }
 }
 
-void lattice::set_c_c_s(){
-    c[0] =
-}
+double const lattice::c[9][2] = {
+        {0.0, 0.0},
+        {1.0, 0.0},
+        {0.0, 1.0},
+        {-1.0, 0.0},
+        {0.0, -1.0},
+        {1.0, 1.0},
+        {-1.0, 1.0},
+        {-1.0, -1.0},
+        {1.0, -1.0}
+};
+
 
 void lattice::lbm(){
 
@@ -73,10 +113,12 @@ void lattice::lbm(){
 
             //calc density and velocity
             density += func[i];
-            velocity += func[i]*c[i];
+            velocity += (1/density) * func[i]*c[i];
 
             //collide
-            func_eq[i] = omega[i] * density (1+ ((c[i]*velocity)/c_s*c_s) + (pow((c[i]*velocity),2) / (2*pow(c_s,4))) - (velocity * velocity / (2*c_s*c_s)));
+            func_eq[i] = omega[i] * density ( 1.0 + ( ( c[i] * velocity ) / c_s * c_s ) +
+                                             ( pow ( ( c[i] * velocity ), 2.0) / ( 2.0 * pow( c_s, 4.0) ) ) -
+                                              ( velocity * velocity / ( 2.0 * c_s * c_s ) ) );
 
             func[i] = func[i] - ((1/tow)*(func[i]) - func_eq[i]);
 
@@ -88,7 +130,26 @@ void lattice::lbm(){
 
 }
 
-int main(){
+int main(int argc, char *argv[]){
+
+    if(argc != 2){
+        cout << "Not enough arguments" << endl;
+    }
+
+    if (argv[1] == "scenario1"){
+
+        double vis = 10e-6;
+        double end_t = 3;
+        double accl = 0.01;
+        double res_cyl_dia = 30;
+    }
+
+    if (argv[1] == "scenario2"){
+        double vis = 10e-6;
+        double end_t = 5;
+        double accl = 0.016;
+        double res_cyl_dia = 60;
+    }
     lattice l;
     values vl;
     l.set_value(0.5, 0.6, 2.33);
