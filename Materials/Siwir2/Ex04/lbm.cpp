@@ -109,18 +109,18 @@ double const lattice::c[9][2] = {
 void lattice::lbm(){
 
     for (int t=0; t<t_end; t=t+det_t){
-        for (size_t i=0; i<cell.size(); i++){
+        for (size_t i=0; i<9; i++){
 
             //calc density and velocity
             density += func[i];
             velocity += (1/density) * func[i]*c[i];
 
             //collide
-            func_eq[i] = omega[i] * density ( 1.0 + ( ( c[i] * velocity ) / c_s * c_s ) +
-                                             ( pow ( ( c[i] * velocity ), 2.0) / ( 2.0 * pow( c_s, 4.0) ) ) -
-                                              ( velocity * velocity / ( 2.0 * c_s * c_s ) ) );
+            func_eq[i] = omega[i] * density ( 1.0 + (3.0 * c[i] * velocity) +
+                                              (4.5 * (c[i]*c[i] * velocity * velocity) -
+                                               (1.5 * velocity * velocity) ) );
 
-            func[i] = func[i] - ((1/tow)*(func[i]) - func_eq[i]);
+            func[i] = func[i] - relax_fac * (func[i] - func_eq[i]);
 
             //stream
             func(k,t+del_t) = func[i];
