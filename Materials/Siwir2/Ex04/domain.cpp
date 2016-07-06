@@ -19,26 +19,72 @@ public:
     void set_cords();
     void find_lattice_units();
     void set_relax_factor();
+    void calc_density(int j);
+    void calc_velocity(int j);
+    void calc_funcq_eq(int j);
 //    void initial_vector();
     void initialize_vector();
-    void calc_func_q();
+    void calc_func_q(int i);
+    void find_metric_units();
 
 public:
     int nx, ny, cellsize, t_end;
-    double x_len, y_len, dia, resol, relax_fac, nu, accel, ux, uy;
+    double x_len, y_len, dia, resol, relax_fac, nu, accel, ux, uy, density;
     vector < vector < vector <double> > > vec;
     vector < vector <double> > func_q;
+    vector < vector <double> > func_q_eq;
     double omega[9];
     double cords[9][2];
     //variables in lattice units
-    double del_x, del_t, nu_l, ux_l, uy_l, ax_l, ay_l;
+    double del_x, del_t, nu_l, ux_l, uy_l, ax_l=0.0, ay_l=0.0;
 
 };
 
-//    typedef vector<int> v1d;
-//    typedef vector<v1d> v2d;
-//    typedef vector<v2d> v3d;
-//    v3d v(3, v2d(3, v1d(2, 4)));
+void domain::find_metric_units(){
+    x_len = del_x * (nx*100);
+    del_t = 2;
+
+    //find lattice viscosity
+    nu = nu_l * del_x * del_x / del_t;
+
+    //find lattice velocity
+    ux = ux_l * del_x / del_t;
+    uy = uy_l * del_x / del_t;
+
+    //find lattice acceleration
+}
+
+void domain::calc_funcq_eq(int j){
+    for (int i=0; i<9; i++){
+        func_q_eq[j][i] = omega[i] * density * (1.0 + (3.0*((cords[i][0]*ux) + (cords[i][1]*uy))) +
+                       (4.5*((cords[i][0]*ux) + (cords[i][1]*uy)) * ((cords[i][0]*ux) + (cords[i][1]*uy))) -
+                        (1.5*((ux*ux)+(uy*uy))));
+
+    }
+}
+
+void domain::calc_func_q(int i){
+
+    for (int j=0; j<9; j++){
+        func_q[i][j] = func_q[i][j] - (relax_fac * (func_q[i][j]-func_q_eq[i][j]) +
+                                       (3.0 * omega[i] * density * (cords[j][0] * ax_l) * (cords[j][1]*ay_l)));
+        }
+}
+
+void domain::calc_density(int j){
+    for (int i=0; i<9; i++){
+        density += func_q[j][i];
+    }
+}
+
+void domain::calc_velocity(int j){
+
+        ux += (func_q[j][1]*cords[1][0] + func_q[j][5]*cords[5][0] + func_q[j][8]*cords[8][0] -
+                func_q[j][6]*cords[6][0] - func_q[j][3]*cords[3][0] - func_q[j][7]*cords[7][0])/density;
+
+        uy += (func_q[j][6]*cords[6][0] + func_q[j][5]*cords[5][0] + func_q[j][2]*cords[2][0] -
+                func_q[j][7]*cords[7][0] - func_q[j][4]*cords[4][0] - func_q[j][7]*cords[7][0])/density;
+}
 
 void domain::set_cords(){
     cords[0][0] = 0.0;
@@ -103,16 +149,7 @@ void domain::set_omega(){
     omega[4] = 0.444444444; //C
 }
 
-void domain::calc_func_q(){
-    for (size_t i=0; i<cellsize; i++){
-        for (int j=0; j<9; j++){
-//            for (int k=0; k<2; k++){
-                func_q[i][j] = func_q[i][j] - (relax_fac * (func_q[i][j]-func_q_eq[i][j]) + (3.0 * omega[i] * density * c_c * accel));
-//            }
-        }
 
-    }
-}
 
 void domain::set_global(double x_length, double y_length, double diameter, int resolution, double viscosity, double acceleration, int end_time){
     x_len = x_length;
@@ -201,7 +238,13 @@ int main(){
     d.set_cords();
     d.find_lattice_units();
     d.set_relax_factor();
+
+    for (int i=0; i<d.cellsize; i++){
+        d.calc_density(i);
+        d.calc_velocity(i);
+        d.calc_funcq_eq(i);
+        d.calc_func_q(i);
+        d.find_metric_units();
+    }
     d.initialize_vector();
-
-
 }
