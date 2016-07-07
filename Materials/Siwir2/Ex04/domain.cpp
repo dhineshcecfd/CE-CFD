@@ -28,7 +28,9 @@ public:
     void find_metric_units();
     void display(double valu);
     void find_lattice_velocities();
-    void stream_step(int i);
+    void stream_step();
+    void initial_setup();
+    void swapping_grid();
 
 public:
     int nx, ny, cellsize, t_end;
@@ -36,45 +38,147 @@ public:
     vector < vector < vector <double> > > vec;
     vector < vector <double> > func_q;
     vector < vector <double> > func_q_eq;
-    double omega[9];
+    vector < vector <double> > dupli_func_q;
+    vector <double> omega;
     double cords[9][2];
     //variables in lattice units
     double del_x, del_t, nu_l, ux_l = 0.0, uy_l = 0.0, ax_l, ay_l=0.0;
 
 };
 
-void domain::stream_step(int i){
+void domain::swapping_grid(){
 
-//    for (int i=1; i<ny-1; i++){
-//        for (int k=1; k<nx-1; k++){
+    func_q = dupli_func_q;
+}
 
-//            func_q [(i*nx)+k][0]        = func_q[i*nx+k][0];
-//            func_q [(i*nx)+(k+1)][1]    = func_q[i*nx+k][1];
-//            func_q [((i+1)*nx)+k][2]    = func_q[i*nx+k][2];
-//            func_q [(i*nx)+k-1][3]      = func_q[i*nx+k][3];
-//            func_q [(i-1)*nx+k][4]      = func_q[i*nx+k][4];
-//            func_q [(i+1)*nx+k+1][5]    = func_q[i*nx+k][5];
-//            func_q [(i+1)*nx+k-1][6]    = func_q[i*nx+k][6];
-//            func_q [(i-1)*nx+k-1][7]    = func_q[i*nx+k][7];
-//            func_q [(i-1)*nx+k+1][8]    = func_q[i*nx+k][8];
-//        }
-//    }
-    func_q [i][0]           = func_q[i][0];
-    func_q [i+1][1]         = func_q[i][1];
-    func_q [i+nx][2]        = func_q[i][2];
-    func_q [i-1][3]         = func_q[i][3];
-    func_q [i-nx][4]        = func_q[i][4];
-    func_q [i+nx+1][5]      = func_q[i][5];
-    func_q [i+nx-1][6]      = func_q[i][6];
-    func_q [i-nx-1][7]      = func_q[i][7];
-    func_q [i-nx+1][8]      = func_q[i][8];
+void domain::initial_setup(){
 
+    int counter = 1;
+    for (int i=0; i<cellsize; i++){
+        for (int j=0; j<9; j++){
+            func_q[i][j]= func_q[i][j] - relax_fac * (func_q[i][j]-omega[j]) +
+                                       (3.0 * omega[j] * density * ((cords[j][0] * ax_l) + (cords[j][1]*ay_l)));
+
+//            display(func_q[i][j]);
+        ++counter;
+        }
+    }
+//    display(counter);
+}
+
+void domain::stream_step(){
+
+    for (int i=0; i<ny; i++){
+        for (int k=0; k<nx; k++){
+            if ((i*nx+k) < nx && (i*nx+k) != 0 && (i*nx+k) != nx-1){ //bottom No-slip boundary
+                dupli_func_q [i*nx+k][6] = func_q [i*nx+k][8];
+                dupli_func_q [i*nx+k][2] = func_q [i*nx+k][4];
+                dupli_func_q [i*nx+k][5] = func_q [i*nx+k][7];
+                dupli_func_q [i*nx+k][3] = func_q [i*nx+k][3];
+                dupli_func_q [i*nx+k][0] = func_q [i*nx+k][0];
+                dupli_func_q [i*nx+k][1] = func_q [i*nx+k][1];
+                dupli_func_q [i*nx+k][7] = func_q [i*nx+k][7];
+                dupli_func_q [i*nx+k][4] = func_q [i*nx+k][4];
+                dupli_func_q [i*nx+k][8] = func_q [i*nx+k][8];
+            }
+            else if ((i*nx+k) == (nx*(ny-1))+k && (i*nx+k) != nx*(ny-1) && (i*nx+k) != (nx*ny)-1){ //top No-slip boundary
+                dupli_func_q [i*nx+k][8] = func_q [i*nx+k][6];
+                dupli_func_q [i*nx+k][4] = func_q [i*nx+k][2];
+                dupli_func_q [i*nx+k][7] = func_q [i*nx+k][5];
+                dupli_func_q [i*nx+k][3] = func_q [i*nx+k][3];
+                dupli_func_q [i*nx+k][0] = func_q [i*nx+k][0];
+                dupli_func_q [i*nx+k][1] = func_q [i*nx+k][1];
+                dupli_func_q [i*nx+k][6] = func_q [i*nx+k][6];
+                dupli_func_q [i*nx+k][2] = func_q [i*nx+k][2];
+                dupli_func_q [i*nx+k][5] = func_q [i*nx+k][5];
+            }
+            else if ((i*nx+k) == (i*nx) && i*nx+k != 0 && i*nx+k != nx*(ny-1)){//left peroidic boundary
+                dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
+                dupli_func_q [(i*nx+k)+(2*nx-1)][6] = func_q [i*nx+k][6];
+                dupli_func_q [i*nx+k+1][1]          = func_q [i*nx+k][1];
+                dupli_func_q [(i+1)*nx+k][2]        = func_q [i*nx+k][2];
+                dupli_func_q [(i+1)*nx+(k+1)][5]    = func_q [i*nx+k][5];
+                dupli_func_q [(i*nx+k)+(nx-1)][3]   = func_q [i*nx+k][3];
+                dupli_func_q [(i*nx+k)-1][7]        = func_q [i*nx+k][7];
+                dupli_func_q [(i*nx+k)-nx][4]       = func_q [i*nx+k][4];
+                dupli_func_q [(i*nx+k)-nx+1][8]     = func_q [i*nx+k][8];
+            }
+            else if ((i*nx+k) == (i*nx)-1 && (i*nx+k) != (nx-1) && (i*nx+k) != (nx*ny)-1){//right peroidic boundary
+                dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
+                dupli_func_q [(i*nx+k)+(nx-1)][6]   = func_q [i*nx+k][6];
+                dupli_func_q [i*nx+k-(nx-1)][1]     = func_q [i*nx+k][1];
+                dupli_func_q [i*nx+k+nx][2]         = func_q [i*nx+k][2];
+                dupli_func_q [i*nx+(k+1)][5]        = func_q [i*nx+k][5];
+                dupli_func_q [(i*nx+k)-1][3]        = func_q [i*nx+k][3];
+                dupli_func_q [(i-1)*nx+(k-1)][7]    = func_q [i*nx+k][7];
+                dupli_func_q [(i*nx+k)-nx][4]       = func_q [i*nx+k][4];
+                dupli_func_q [(i*nx+k)-(2*nx-1)][8] = func_q [i*nx+k][8];
+            }
+            else if ((i*nx+k) == 0){ //SW - boundary
+                dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
+                dupli_func_q [(i*nx+k)+(2*nx-1)][6] = func_q [i*nx+k][6];
+                dupli_func_q [i*nx+k+1][1]          = func_q [i*nx+k][1];
+                dupli_func_q [(i+1)*nx+k][2]        = func_q [i*nx+k][2];
+                dupli_func_q [(i+1)*nx+(k+1)][5]    = func_q [i*nx+k][5];
+                dupli_func_q [(i*nx+k)+(nx-1)][3]   = func_q [i*nx+k][3];
+                dupli_func_q [i*nx+k][5]            = func_q [i*nx+k][7];
+                dupli_func_q [i*nx+k][2]            = func_q [i*nx+k][4];
+                dupli_func_q [i*nx+k][6]            = func_q [i*nx+k][8];
+            }
+            else if ((i*nx+k) == (nx*(ny-1))){ //NW - boundary
+                dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
+                dupli_func_q [(i*nx+k)+(2*nx-1)][8] = func_q [i*nx+k][6];
+                dupli_func_q [i*nx+k+1][1]          = func_q [i*nx+k][1];
+                dupli_func_q [(i+1)*nx+k][4]        = func_q [i*nx+k][2];
+                dupli_func_q [(i+1)*nx+(k+1)][7]    = func_q [i*nx+k][5];
+                dupli_func_q [(i*nx+k)+(nx-1)][3]   = func_q [i*nx+k][3];
+                dupli_func_q [(i*nx+k)-1][7]        = func_q [i*nx+k][7];
+                dupli_func_q [(i*nx+k)-nx][4]       = func_q [i*nx+k][4];
+                dupli_func_q [(i*nx+k)-nx+1][8]     = func_q [i*nx+k][8];
+            }
+            else if ((i*nx+k) == (nx-1)){ //SE - boundary
+                dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
+                dupli_func_q [(i*nx+k)+(nx-1)][6]   = func_q [i*nx+k][6];
+                dupli_func_q [i*nx+k-(nx-1)][1]     = func_q [i*nx+k][1];
+                dupli_func_q [i*nx+k+nx][2]         = func_q [i*nx+k][2];
+                dupli_func_q [i*nx+(k+1)][5]        = func_q [i*nx+k][5];
+                dupli_func_q [(i*nx+k)-1][3]        = func_q [i*nx+k][3];
+                dupli_func_q [i*nx+k][5]            = func_q [i*nx+k][7];
+                dupli_func_q [i*nx+k][2]            = func_q [i*nx+k][4];
+                dupli_func_q [i*nx+k][6]            = func_q [i*nx+k][8];
+            }
+            else if ((i*nx+k) == (nx*ny)-1){ //NE - boundary
+                dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
+                dupli_func_q [(i*nx+k)+(nx-1)][8]   = func_q [i*nx+k][6];
+                dupli_func_q [i*nx+k-(nx-1)][1]     = func_q [i*nx+k][1];
+                dupli_func_q [i*nx+k+nx][4]         = func_q [i*nx+k][2];
+                dupli_func_q [i*nx+(k+1)][7]        = func_q [i*nx+k][5];
+                dupli_func_q [(i*nx+k)-1][3]        = func_q [i*nx+k][3];
+                dupli_func_q [(i-1)*nx+(k-1)][7]    = func_q [i*nx+k][7];
+                dupli_func_q [(i*nx+k)-nx][4]       = func_q [i*nx+k][4];
+                dupli_func_q [(i*nx+k)-(2*nx-1)][8] = func_q [i*nx+k][8];
+            } else
+                { //default streaming
+                dupli_func_q [(i*nx)+k][0]      =   func_q [i*nx+k][0];
+                dupli_func_q [(i*nx)+(k+1)][1]  =   func_q [i*nx+k][1];
+                dupli_func_q [((i+1)*nx)+k][2]  =   func_q [i*nx+k][2];
+                dupli_func_q [(i*nx)+k-1][3]    =   func_q [i*nx+k][3];
+                dupli_func_q [(i-1)*nx+k][4]    =   func_q [i*nx+k][4];
+                dupli_func_q [(i+1)*nx+k+1][5]  =   func_q [i*nx+k][5];
+                dupli_func_q [(i+1)*nx+k-1][6]  =   func_q [i*nx+k][6];
+                dupli_func_q [(i-1)*nx+k-1][7]  =   func_q [i*nx+k][7];
+                dupli_func_q [(i-1)*nx+k+1][8]  =   func_q [i*nx+k][8];
+            }
+        }
+    }
 }
 
 void domain::initialize_2D_vector(){
 
     func_q.resize( cellsize , vector<double>( 9 , 0.0 ) );
     func_q_eq.resize( cellsize , vector<double>( 9 , 0.0 ) );
+    dupli_func_q.resize( cellsize, vector <double> (9, 0.0));
+    omega.resize(9, 0.0);
 }
 
 void domain::find_metric_units(){
@@ -106,32 +210,33 @@ void domain::calc_funcq_eq(int j){
 void domain::calc_func_q(int i){
 
     for (int j=0; j<9; j++){
-        func_q[i][j] = func_q[i][j] - (relax_fac * (func_q[i][j]-func_q_eq[i][j]) +
-                                       (3.0 * omega[i] * density * (cords[j][0] * ax_l) * (cords[j][1]*ay_l)));
+        dupli_func_q[i][j] = dupli_func_q[i][j] - relax_fac * (dupli_func_q[i][j]-func_q_eq[i][j]) +
+                                       (3.0 * omega[j] * density * ((cords[j][0] * ax_l) + (cords[j][1]*ay_l)));
 //        display(func_q[i][j]);
     }
 }
 
 void domain::calc_density(int j){
+    density = 0.0;
     for (int i=0; i<9; i++){
         density += func_q[j][i];
     }
-    display(density);
+//    display(density);
 }
 
 void domain::calc_velocity(int j){
 
-//    display(ux_l);
-//    display(uy_l);
+    ux_l = 0.0;
+    uy_l = 0.0;
 
-        ux_l += (func_q[j][1]*cords[1][0] + func_q[j][5]*cords[5][0] + func_q[j][8]*cords[8][0] -
-                func_q[j][6]*cords[6][0] - func_q[j][3]*cords[3][0] - func_q[j][7]*cords[7][0])/density;
+    ux_l += (dupli_func_q[j][1]*cords[1][0] + dupli_func_q[j][5]*cords[5][0] + dupli_func_q[j][8]*cords[8][0] -
+                dupli_func_q[j][6]*cords[6][0] - dupli_func_q[j][3]*cords[3][0] - dupli_func_q[j][7]*cords[7][0])/density;
 
-        uy_l += (func_q[j][6]*cords[6][0] + func_q[j][5]*cords[5][0] + func_q[j][2]*cords[2][0] -
-                func_q[j][7]*cords[7][0] - func_q[j][4]*cords[4][0] - func_q[j][7]*cords[7][0])/density;
+    uy_l += (dupli_func_q[j][6]*cords[6][0] + dupli_func_q[j][5]*cords[5][0] + dupli_func_q[j][2]*cords[2][0] -
+                dupli_func_q[j][7]*cords[7][0] - dupli_func_q[j][4]*cords[4][0] - dupli_func_q[j][7]*cords[7][0])/density;
 
-        display(ux_l);
-        display(uy_l);
+//        display(ux_l);
+//        display(uy_l);
 }
 
 void domain::set_cords(){
@@ -198,15 +303,16 @@ void domain::set_relax_factor(){
 }
 
 void domain::set_omega(){
-    omega[0] = 0.027777778; //SE
-    omega[2] = 0.027777778; //SW
-    omega[6] = 0.027777778; //NW
-    omega[8] = 0.027777778; //NE
-    omega[1] = 0.111111111; //W
-    omega[3] = 0.111111111; //S
-    omega[5] = 0.111111111; //E
-    omega[7] = 0.111111111; //N
-    omega[4] = 0.444444444; //C
+
+    omega[0] = 4.0/9.0; //SE
+    omega[1] = 1.0/9.0; //SW
+    omega[2] = 1.0/9.0; //NW
+    omega[3] = 1.0/9.0; //NE
+    omega[4] = 1.0/36.0; //W
+    omega[5] = 1.0/36.0; //S
+    omega[6] = 1.0/36.0; //E
+    omega[7] = 1.0/36.0; //N
+    omega[8] = 1.0/36.0; //C
 }
 
 
@@ -293,26 +399,41 @@ int main(){
     domain d;
     d.set_global(x_len, y_len, dia, resol, visco, accel, t_end);
     d.set_domain();
+    d.initialize_2D_vector();
     d.set_omega();
     d.fill_domain();
     d.set_cords();
-
-    d.set_relax_factor();
-    d.initialize_2D_vector();
-    d.calc_density(0);
-    d.calc_velocity(0);
     d.find_lattice_units();
+    d.set_relax_factor();
+    d.initial_setup();
+//    cout << "summa" << endl;
+    for (int j=0; j<1; j++){
+        d.stream_step();
 
-    for (int i=(d.nx+1); i<d.cellsize-(d.nx+1); i++){
-        d.stream_step(i);
-        d.calc_funcq_eq(i);
-        d.calc_func_q(i);
-//    int i=1;
-        d.calc_density(i);
-        d.calc_velocity(i);
+
+        for (int i=0; i<d.cellsize; i++){
+            d.calc_funcq_eq(i);
+            d.calc_func_q(i);
+            d.calc_density(i);
+            d.calc_velocity(i);
+            d.swapping_grid();
+        }
+}
+
+//    d.calc_density(0);
+//    d.calc_velocity(0);
+//
+
+//    for (int i=(d.nx+1); i<d.cellsize-(d.nx+1); i++){
+//        d.stream_step(i);
 //        d.calc_funcq_eq(i);
 //        d.calc_func_q(i);
-//        d.find_metric_units();
-    }
+////    int i=1;
+//        d.calc_density(i);
+//        d.calc_velocity(i);
+////        d.calc_funcq_eq(i);
+////        d.calc_func_q(i);
+////        d.find_metric_units();
+//    }
 //    d.initialize_vector();
 }
