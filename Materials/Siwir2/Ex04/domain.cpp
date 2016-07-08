@@ -68,31 +68,66 @@ void domain::initial_setup(){
 
 void domain::stream_step(){
 
+//    nx = 4;
+//    ny = 5;
     for (int i=0; i<ny; i++){
         for (int k=0; k<nx; k++){
-            if ((i*nx+k) < nx && (i*nx+k) != 0 && (i*nx+k) != nx-1){ //bottom No-slip boundary
-                dupli_func_q [i*nx+k][6] = func_q [i*nx+k][8];
-                dupli_func_q [i*nx+k][2] = func_q [i*nx+k][4];
-                dupli_func_q [i*nx+k][5] = func_q [i*nx+k][7];
-                dupli_func_q [i*nx+k][3] = func_q [i*nx+k][3];
-                dupli_func_q [i*nx+k][0] = func_q [i*nx+k][0];
-                dupli_func_q [i*nx+k][1] = func_q [i*nx+k][1];
-                dupli_func_q [i*nx+k][7] = func_q [i*nx+k][7];
-                dupli_func_q [i*nx+k][4] = func_q [i*nx+k][4];
-                dupli_func_q [i*nx+k][8] = func_q [i*nx+k][8];
+            if ((i*nx+k) < nx-1 && (i*nx+k) > 0){ //bottom No-slip boundary
+
+//                display((i*nx+k)+nx-1);
+//                display((i*nx+k)+nx);
+//                display((i*nx+k)+(nx+1));
+//                display(i*nx+k-1);
+//                display(i*nx+k);
+//                display(i*nx+k+1);
+//                display(i*nx+k);
+//                display(i*nx+k);
+//                display(i*nx+k);
+
+                dupli_func_q [(i*nx+k)+nx-1][6]       = func_q [i*nx+k][6];
+                dupli_func_q [(i*nx+k)+nx][2]       = func_q [i*nx+k][2];
+                dupli_func_q [(i*nx+k)+(nx+1)][5]   = func_q [i*nx+k][5];
+                dupli_func_q [i*nx+k-1][3]          = func_q [i*nx+k][3];
+                dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
+                dupli_func_q [i*nx+k+1][1]          = func_q [i*nx+k][1];
+                dupli_func_q [i*nx+k][5]            = func_q [i*nx+k][7];
+                dupli_func_q [i*nx+k][2]            = func_q [i*nx+k][4];
+                dupli_func_q [i*nx+k][6]            = func_q [i*nx+k][8];
             }
-            else if ((i*nx+k) == (nx*(ny-1))+k && (i*nx+k) != nx*(ny-1) && (i*nx+k) != (nx*ny)-1){ //top No-slip boundary
-                dupli_func_q [i*nx+k][8] = func_q [i*nx+k][6];
-                dupli_func_q [i*nx+k][4] = func_q [i*nx+k][2];
-                dupli_func_q [i*nx+k][7] = func_q [i*nx+k][5];
-                dupli_func_q [i*nx+k][3] = func_q [i*nx+k][3];
-                dupli_func_q [i*nx+k][0] = func_q [i*nx+k][0];
-                dupli_func_q [i*nx+k][1] = func_q [i*nx+k][1];
-                dupli_func_q [i*nx+k][6] = func_q [i*nx+k][6];
-                dupli_func_q [i*nx+k][2] = func_q [i*nx+k][2];
-                dupli_func_q [i*nx+k][5] = func_q [i*nx+k][5];
+            else if ((i*nx+k) > (nx*(ny-1)) && (i*nx+k) < (nx*ny)-1 ){ //top No-slip boundary
+
+//                display((i*nx+k)-nx-1);
+//                display((i*nx+k)-nx);
+//                display((i*nx+k)-nx+1);
+//                display(i*nx+k-1);
+//                display(i*nx+k);
+//                display(i*nx+k+1);
+//                display(i*nx+k);
+//                display(i*nx+k);
+//                display(i*nx+k);
+
+                dupli_func_q [(i*nx+k)-(nx+1)][7]   = func_q [i*nx+k][7];
+                dupli_func_q [(i*nx+k)-nx][4]       = func_q [i*nx+k][4];
+                dupli_func_q [(i*nx+k)-nx+1][8]     = func_q [i*nx+k][8];
+                dupli_func_q [i*nx+k-1][3]          = func_q [i*nx+k][3];
+                dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
+                dupli_func_q [i*nx+k+1][1]          = func_q [i*nx+k][1];
+                dupli_func_q [i*nx+k][7]            = func_q [i*nx+k][5];
+                dupli_func_q [i*nx+k][4]            = func_q [i*nx+k][2];
+                dupli_func_q [i*nx+k][8]            = func_q [i*nx+k][6];
             }
-            else if ((i*nx+k) == (i*nx) && i*nx+k != 0 && i*nx+k != nx*(ny-1)){//left peroidic boundary
+            else if ((i*nx+k) == (i*nx) && (i*nx+k) > 0 && (i*nx+k) < nx*(ny-1)){//left peroidic boundary
+
+//                display(i*nx+k);
+//                display((i*nx+k)+(2*nx-1));
+//                display(i*nx+k+1);
+//                display((i+1)*nx+k);
+//                display((i+1)*nx+(k+1));
+//                display((i*nx+k)+(nx-1));
+//                display((i*nx+k)-1);
+//                display((i*nx+k)-nx);
+//                display((i*nx+k)-nx+1);
+
                 dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
                 dupli_func_q [(i*nx+k)+(2*nx-1)][6] = func_q [i*nx+k][6];
                 dupli_func_q [i*nx+k+1][1]          = func_q [i*nx+k][1];
@@ -102,8 +137,20 @@ void domain::stream_step(){
                 dupli_func_q [(i*nx+k)-1][7]        = func_q [i*nx+k][7];
                 dupli_func_q [(i*nx+k)-nx][4]       = func_q [i*nx+k][4];
                 dupli_func_q [(i*nx+k)-nx+1][8]     = func_q [i*nx+k][8];
+
             }
-            else if ((i*nx+k) == (i*nx)-1 && (i*nx+k) != (nx-1) && (i*nx+k) != (nx*ny)-1){//right peroidic boundary
+            else if ((i*nx+k) == (i*nx)+(nx-1) && (i*nx+k) > nx-1 && (i*nx+k) < (nx*ny)-1){//right peroidic boundary
+
+//                display(i*nx+k);
+//                display((i*nx+k)+(nx-1));
+//                display(i*nx+k-(nx-1));
+//                display((i+1)*nx+k);
+//                display(i*nx+(k+1));
+//                display((i*nx+k)-1);
+//                display((i-1)*nx+(k-1));
+//                display((i*nx+k)-nx);
+//                display((i*nx+k)-(2*nx-1));
+
                 dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
                 dupli_func_q [(i*nx+k)+(nx-1)][6]   = func_q [i*nx+k][6];
                 dupli_func_q [i*nx+k-(nx-1)][1]     = func_q [i*nx+k][1];
@@ -115,6 +162,17 @@ void domain::stream_step(){
                 dupli_func_q [(i*nx+k)-(2*nx-1)][8] = func_q [i*nx+k][8];
             }
             else if ((i*nx+k) == 0){ //SW - boundary
+
+//                display(i*nx+k);
+//                display((i*nx+k)+(2*nx-1));
+//                display(i*nx+k+1);
+//                display((i+1)*nx+k);
+//                display((i+1)*nx+(k+1));
+//                display((i*nx+k)+(nx-1));
+//                display(i*nx+k);
+//                display(i*nx+k);
+//                display(i*nx+k);
+
                 dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
                 dupli_func_q [(i*nx+k)+(2*nx-1)][6] = func_q [i*nx+k][6];
                 dupli_func_q [i*nx+k+1][1]          = func_q [i*nx+k][1];
@@ -126,17 +184,39 @@ void domain::stream_step(){
                 dupli_func_q [i*nx+k][6]            = func_q [i*nx+k][8];
             }
             else if ((i*nx+k) == (nx*(ny-1))){ //NW - boundary
+
+//                display(i*nx+k);
+//                display((i*nx+k)-nx+1);
+//                display(i*nx+k+1);
+//                display((i-1)*nx+k);
+//                display(i*nx+k-1);
+//                display((i*nx+k)+(nx-1));
+//                display(i*nx+k);
+//                display(i*nx+k);
+//                display(i*nx+k);
+
                 dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
-                dupli_func_q [(i*nx+k)+(2*nx-1)][8] = func_q [i*nx+k][6];
-                dupli_func_q [i*nx+k+1][1]          = func_q [i*nx+k][1];
-                dupli_func_q [(i+1)*nx+k][4]        = func_q [i*nx+k][2];
-                dupli_func_q [(i+1)*nx+(k+1)][7]    = func_q [i*nx+k][5];
-                dupli_func_q [(i*nx+k)+(nx-1)][3]   = func_q [i*nx+k][3];
-                dupli_func_q [(i*nx+k)-1][7]        = func_q [i*nx+k][7];
-                dupli_func_q [(i*nx+k)-nx][4]       = func_q [i*nx+k][4];
                 dupli_func_q [(i*nx+k)-nx+1][8]     = func_q [i*nx+k][8];
+                dupli_func_q [i*nx+k+1][1]          = func_q [i*nx+k][1];
+                dupli_func_q [(i-1)*nx+k][4]        = func_q [i*nx+k][4];
+                dupli_func_q [i*nx+k-1][7]          = func_q [i*nx+k][7];
+                dupli_func_q [(i*nx+k)+(nx-1)][3]   = func_q [i*nx+k][3];
+                dupli_func_q [(i*nx+k)-1][7]        = func_q [i*nx+k][5];
+                dupli_func_q [(i*nx+k)-nx][4]       = func_q [i*nx+k][2];
+                dupli_func_q [(i*nx+k)-nx+1][8]     = func_q [i*nx+k][6];
             }
             else if ((i*nx+k) == (nx-1)){ //SE - boundary
+
+//                display(i*nx+k);
+//                display((i*nx+k)+(nx-1));
+//                display(i*nx+k-(nx-1));
+//                display(i*nx+k+nx);
+//                display(i*nx+(k+1));
+//                display((i*nx+k)-1);
+//                display(i*nx+k);
+//                display(i*nx+k);
+//                display(i*nx+k);
+
                 dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
                 dupli_func_q [(i*nx+k)+(nx-1)][6]   = func_q [i*nx+k][6];
                 dupli_func_q [i*nx+k-(nx-1)][1]     = func_q [i*nx+k][1];
@@ -148,17 +228,39 @@ void domain::stream_step(){
                 dupli_func_q [i*nx+k][6]            = func_q [i*nx+k][8];
             }
             else if ((i*nx+k) == (nx*ny)-1){ //NE - boundary
+
+//                display(i*nx+k);
+//                display((i*nx+k)-(2*nx-1));
+//                display(i*nx+k-(nx-1));
+//                display(i*nx+k-nx);
+//                display(i*nx+k-(nx+1));
+//                display((i*nx+k)-1);
+//                display(i*nx+k);
+//                display((i*nx+k));
+//                display((i*nx+k));
+
                 dupli_func_q [i*nx+k][0]            = func_q [i*nx+k][0];
-                dupli_func_q [(i*nx+k)+(nx-1)][8]   = func_q [i*nx+k][6];
-                dupli_func_q [i*nx+k-(nx-1)][1]     = func_q [i*nx+k][1];
-                dupli_func_q [i*nx+k+nx][4]         = func_q [i*nx+k][2];
-                dupli_func_q [i*nx+(k+1)][7]        = func_q [i*nx+k][5];
-                dupli_func_q [(i*nx+k)-1][3]        = func_q [i*nx+k][3];
-                dupli_func_q [(i-1)*nx+(k-1)][7]    = func_q [i*nx+k][7];
-                dupli_func_q [(i*nx+k)-nx][4]       = func_q [i*nx+k][4];
                 dupli_func_q [(i*nx+k)-(2*nx-1)][8] = func_q [i*nx+k][8];
+                dupli_func_q [i*nx+k-(nx-1)][1]     = func_q [i*nx+k][1];
+                dupli_func_q [i*nx+k-nx][4]         = func_q [i*nx+k][4];
+                dupli_func_q [i*nx+k-(nx+1)][7]     = func_q [i*nx+k][7];
+                dupli_func_q [(i*nx+k)-1][3]        = func_q [i*nx+k][3];
+                dupli_func_q [i*nx+k][8]            = func_q [i*nx+k][6];
+                dupli_func_q [i*nx+k][4]            = func_q [i*nx+k][2];
+                dupli_func_q [i*nx+k][7]            = func_q [i*nx+k][5];
             } else
                 { //default streaming
+
+//                display(i*nx+k);
+//                display((i*nx)+(k+1));
+//                display(((i+1)*nx)+k);
+//                display((i*nx)+k-1);
+//                display((i-1)*nx+k);
+//                display((i+1)*nx+k+1);
+//                display((i+1)*nx+k-1);
+//                display((i-1)*nx+k-1);
+//                display((i-1)*nx+k+1);
+
                 dupli_func_q [(i*nx)+k][0]      =   func_q [i*nx+k][0];
                 dupli_func_q [(i*nx)+(k+1)][1]  =   func_q [i*nx+k][1];
                 dupli_func_q [((i+1)*nx)+k][2]  =   func_q [i*nx+k][2];
@@ -219,7 +321,7 @@ void domain::calc_func_q(int i){
 void domain::calc_density(int j){
     density = 0.0;
     for (int i=0; i<9; i++){
-        density += func_q[j][i];
+        density += dupli_func_q[j][i];
     }
 //    display(density);
 }
@@ -235,8 +337,8 @@ void domain::calc_velocity(int j){
     uy_l += (dupli_func_q[j][6]*cords[6][0] + dupli_func_q[j][5]*cords[5][0] + dupli_func_q[j][2]*cords[2][0] -
                 dupli_func_q[j][7]*cords[7][0] - dupli_func_q[j][4]*cords[4][0] - dupli_func_q[j][7]*cords[7][0])/density;
 
-//        display(ux_l);
-//        display(uy_l);
+        display(ux_l);
+        display(uy_l);
 }
 
 void domain::set_cords(){
@@ -407,17 +509,18 @@ int main(){
     d.set_relax_factor();
     d.initial_setup();
 //    cout << "summa" << endl;
-    for (int j=0; j<1; j++){
+    for (int j=0; j<10; j++){
         d.stream_step();
 
 
         for (int i=0; i<d.cellsize; i++){
-            d.calc_funcq_eq(i);
-            d.calc_func_q(i);
             d.calc_density(i);
             d.calc_velocity(i);
-            d.swapping_grid();
+            d.calc_funcq_eq(i);
+            d.calc_func_q(i);
+
         }
+        d.swapping_grid();
 }
 
 //    d.calc_density(0);
