@@ -1,9 +1,10 @@
 #include<iostream>
 #include<vector>
 #include <cstdlib>
-#include "imageClass/GrayScaleImage.h"
+#include "GrayScaleImage.h"
 #include <math.h>
 #include<fstream>
+#include <algorithm>
 
 using namespace std;
 struct values{
@@ -34,6 +35,8 @@ public:
     void initial_setup();
     void swapping_grid();
     void set_vector_zero();
+    void find_max_min_vel();
+    double Normalizer(int i);
 
 public:
     int nx, ny, cellsize, t_end;
@@ -45,14 +48,42 @@ public:
     vector <double> omega;
     double cords[9][2];
     //variables in lattice units
-    double del_x, del_t, nu_l, ax_l, ay_l=0.0;
+    double del_x, del_t, nu_l, ax_l, ay_l=0.0, max_vel, min_vel, norm;
     vector <double> ux_l, uy_l, density;
+    vector <double> norm_ux_l;
 
 };
 
 void domain::swapping_grid(){
 
     func_q = dupli_func_q;
+}
+void domain::find_max_min_vel(){
+
+
+
+    min_vel = *min_element(ux_l.begin(), ux_l.end());
+    display(min_vel);
+
+//    std::cout << "The smallest element is " << min_vel << '\n';
+//    std::cout << "The largest element is "  << max_vel << '\n';
+
+    for (int i=0; i<cellsize; i++){
+        norm_ux_l[i] = ux_l[i] - min_vel;
+    }
+
+    max_vel = *max_element(norm_ux_l.begin(), norm_ux_l.end());
+    display(max_vel);
+
+}
+
+double domain::Normalizer(int i){
+
+
+    norm = norm_ux_l[i] / max_vel;
+
+    return norm;
+
 }
 
 void domain::initial_setup(){
@@ -334,6 +365,7 @@ void domain::set_vector_zero(){
     ux_l.resize(cellsize, 0.0);
     uy_l.resize(cellsize, 0.0);
     density.resize(cellsize, 0.0);
+    norm_ux_l.resize(cellsize, 0.0);
 }
 
 void domain::find_metric_units(){
@@ -404,7 +436,6 @@ void domain::calc_func_q(int i){
                                        (3.0 * omega[j] * density[i] * ((cords[j][0] * ax_l) + (cords[j][1]*ay_l)));
 //        display(dupli_func_q[i][j]);
 
-        display((cords[j][0] * ax_l) + (cords[j][1]*ay_l));
     }
 }
 
@@ -549,7 +580,8 @@ void domain::initialize_vector(){
             }
         }
     }
-//    cout << "counter : " << vec.size() << endl;
+//    cout << "counter : " << vec.size() << endl;std::cout << "The smallest element is " << min_vel << '\n';
+    std::cout << "The largest element is "  << max_vel << '\n';
 }
 
 //void domain::initial_vector(){
@@ -623,6 +655,7 @@ int main(){
         d.swapping_grid();
 
 }
+    d.find_max_min_vel();
     std::ofstream solution("solution.txt", std::ofstream::out);
     // for loop to write the output
     for (int i=1; i <= d.ny; ++i){
@@ -630,8 +663,15 @@ int main(){
         }
     //    solution << std::endl;
     solution.close();
+    double i = 0;
 
-    GrayScaleImage g(3,4);
+    GrayScaleImage g(360,120);
+
+    for (int i=0; i<d.cellsize; i++){
+        d.display(d.Normalizer(i));
+        g.setElement(d.nx-1, d.ny-1, d.Normalizer(i));
+  }
+    g.save("scenario.png");
 //    g.GrayScaleImage(3, 4);
 
 
