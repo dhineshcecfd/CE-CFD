@@ -63,7 +63,7 @@ void domain::find_max_min_vel(){
 
 
     min_vel = *min_element(ux_l.begin(), ux_l.end());
-    display(min_vel);
+//    display(min_vel);
 
 //    std::cout << "The smallest element is " << min_vel << '\n';
 //    std::cout << "The largest element is "  << max_vel << '\n';
@@ -73,7 +73,7 @@ void domain::find_max_min_vel(){
     }
 
     max_vel = *max_element(norm_ux_l.begin(), norm_ux_l.end());
-    display(max_vel);
+//    display(max_vel);
 
 }
 
@@ -99,7 +99,7 @@ void domain::initial_setup(){
         ++counter;
         }
     }
-//    display(counter);
+
 }
 
 void domain::stream_step(){
@@ -107,36 +107,56 @@ void domain::stream_step(){
 //    nx = 5;
 //    ny = 5;
     int count = 1;
-    double x_cell = (obst_x - (dia/2)) * resol / dia;
-    double y_cell = (obst_y - (dia/2)) * resol / dia;
-    double start; // = y_cell * nx + x_cell;
+//    double x_cell = (obst_x - (dia/2)) * resol / dia;
+//    double y_cell = (obst_y - (dia/2)) * resol / dia;
+//    double start; // = y_cell * nx + x_cell;
 
-//    display(x_cell);
-//    display(y_cell);
-    for(int i=y_cell; i<=(y_cell+resol); i++){
-        for(int j=x_cell; j<=(x_cell+resol); j++){
-            start = i * nx + j;
-//            display(start);
-            count++;
-        }
-    }
+////    display(x_cell);
+////    display(y_cell);
+//    for(int i=y_cell; i<=(y_cell+resol); i++){
+//        for(int j=x_cell; j<=(x_cell+resol); j++){
+//            start = i * nx + j;
+////            display(start);
+//            count++;
+//        }
+//    }
 
-//    display(count);
+////    display(count);
 
-    int theta = 0;
+//    int theta = 0;
     double x_cord, y_cord;
-    for (theta=0; theta < 360; theta++){
-        x_cord = (dia/2) * cos(theta * M_PI/180);
-        y_cord = (dia/2) * sin(theta * M_PI/180);
-//        display(x_cord);
-//        display(y_cord);
-    }
+//    for (theta=0; theta < 360; theta++){
+//        x_cord = (dia/2) * cos(theta * M_PI/180);
+//        y_cord = (dia/2) * sin(theta * M_PI/180);
+////        display(x_cord);
+////        display(y_cord);
+//    }
 
 
 
     for (int i=0; i<ny; i++){
         for (int k=0; k<nx; k++){
-            if ((i*nx+k) < nx-1 && (i*nx+k) > 0){ //bottom No-slip boundary
+//            display(del_x);
+            y_cord = (i+1)*(del_x);
+            x_cord = (k+1)*(del_x);
+//            display(sqrt(pow((obst_x-x_cord),2) + pow((obst_y-y_cord),2)));
+//            display(x_cord);
+//            display(0.5*dia);
+
+            if( sqrt(pow((obst_x-x_cord),2) + pow((obst_y-y_cord),2)) <= (0.5*dia/100)){
+                dupli_func_q[i*nx+k][0] = 1e-13;
+                dupli_func_q[i*nx+k][1] = 1e-13;
+                dupli_func_q[i*nx+k][2] = 1e-13;
+                dupli_func_q[i*nx+k][3] = 1e-13;
+                dupli_func_q[i*nx+k][4] = 1e-13;
+                dupli_func_q[i*nx+k][5] = 1e-13;
+                dupli_func_q[i*nx+k][6] = 1e-13;
+                dupli_func_q[i*nx+k][7] = 1e-13;
+                dupli_func_q[i*nx+k][8] = 1e-13;
+//                display (i*nx+k);
+//                count++;
+
+            }else if((i*nx+k) < nx-1 && (i*nx+k) > 0){ //bottom No-slip boundary
 
 //                display((i*nx+k)+nx-1);
 //                display((i*nx+k)+nx);
@@ -350,6 +370,7 @@ void domain::stream_step(){
 //            display(dupli_func_q[i*nx+k][8]);
         }
     }
+//    display(count);
 }
 
 void domain::initialize_2D_vector(){
@@ -370,7 +391,7 @@ void domain::set_vector_zero(){
 
 void domain::find_metric_units(){
     x_len = del_x * (nx*100);
-    del_t = 2;
+//    del_t = 2;
 
     //find metric viscosity
     nu = nu_l * del_x * del_x / del_t;
@@ -452,6 +473,16 @@ void domain::calc_velocity(int j){
 
     ux_l[j] = 0.0;
     uy_l[j] = 0.0;
+
+//    display(dupli_func_q[j][0]);
+//    display(dupli_func_q[j][1]);
+//    display(dupli_func_q[j][2]);
+//    display(dupli_func_q[j][3]);
+//    display(dupli_func_q[j][4]);
+//    display(dupli_func_q[j][5]);
+//    display(dupli_func_q[j][6]);
+//    display(dupli_func_q[j][7]);
+//    display(dupli_func_q[j][8]);
 
     ux_l[j] += (dupli_func_q[j][1]*cords[1][0] + dupli_func_q[j][5]*cords[5][0] + dupli_func_q[j][8]*cords[8][0] +
                 dupli_func_q[j][6]*cords[6][0] + dupli_func_q[j][3]*cords[3][0] + dupli_func_q[j][7]*cords[7][0])/density[j];
@@ -618,8 +649,8 @@ void domain::fill_domain(){
 
 int main(){
 
-    double obst_x = 2.0;
-    double obst_y = 0.8;
+    double obst_x = 0.02;
+    double obst_y = 0.008;
 
     double x_len = 6;  //in meters
     double y_len = 2;    //in m
@@ -641,7 +672,7 @@ int main(){
     d.set_relax_factor();
     d.initial_setup();
 //    cout << "summa" << endl;
-    for (int j=0; j<10; j++){
+    for (int j=0; j<100; j++){
         d.stream_step();
 
 
@@ -658,9 +689,13 @@ int main(){
     d.find_max_min_vel();
     std::ofstream solution("solution.txt", std::ofstream::out);
     // for loop to write the output
-    for (int i=1; i <= d.ny; ++i){
-            solution << d.ux_l[i*d.nx] << std::endl;
+    for (int i=0; i < d.ny; ++i){
+        for (int j=0; j<d.nx; ++j ){
+//            if ((i*d.nx+j) == (i*d.nx))
+                solution << d.ux_l[i*d.nx+j] << std::endl;
+
         }
+    }
     //    solution << std::endl;
     solution.close();
     double i = 0;
