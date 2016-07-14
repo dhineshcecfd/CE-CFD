@@ -1,0 +1,28 @@
+CC = g++
+CFLAGS = -Wall -std=c++11 -pedantic
+LIBS = 
+INCLUDES = 
+TARGET = lbm
+
+SRC = domain.cpp\
+	GrayScaleImage.cpp\
+		lodepng.cpp
+OBJ = $(patsubst %.c,%.o,$(SRC))
+
+all: $(TARGET)
+
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(SRC) $(LIBS)
+
+debug: $(SRC)
+	$(CC) -g $(CFLAGS) $(INCLUDES) -o $(TARGET) $(SRC) $(LIBS)
+
+.PHONY : clean depend 
+
+clean:
+	rm -f *.vtk
+	@/bin/rm -f $(OBJS)
+	@/bin/rm -f $(TARGET)
+
+depend:
+	@makedepend -- $(CFLAGS) -- $(SRC)
